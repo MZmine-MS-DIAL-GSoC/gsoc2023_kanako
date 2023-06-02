@@ -1,5 +1,8 @@
-﻿using CompMs.Common.FormulaGenerator.Parser;
+﻿using CompMs.Common.DataObj.Property;
+using CompMs.Common.FormulaGenerator.Function;
+using CompMs.Common.FormulaGenerator.Parser;
 using CompMs.Common.Parameter;
+using CompMs.Common.Parser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using System.Collections.Generic;
@@ -26,6 +29,25 @@ namespace CompMs.Common.FormulaGenerator.Tests
             List<(string, double)> results = formulaResults.Select(f => (f.Formula.FormulaString, f.TotalScore)).ToList();
 
             CollectionAssert.AreEquivalent(results, expectedResults);
+
+            // --------------------------------------------------------------------
+            var error0 = string.Empty;
+            var chemicalOntDB = ChemOntologyDbParser.Read(@"Resources\FormulaGenerator\ChemOntologyDB_vs2.cho", out error0);
+
+            ChemicalOntologyAnnotation.ProcessByOverRepresentationAnalysis(formulaResults, chemicalOntDB, rawData.IonMode,
+                param, AdductIon.GetAdductIon(rawData.PrecursorType), productIonDB, neutralLossDB);
+
+            var r1 = formulaResults[0];
+            System.Console.WriteLine(r1.Formula.FormulaString);
+            System.Console.WriteLine(r1.ChemicalOntologyDescriptions.Count);
+
+
+            var formulaResultsWithChemOnt = FormulaResultParcer.FormulaResultReader(@"Resources\FormulaGenerator\test_data1_result.fgt", out _);
+
+            var r0 = formulaResultsWithChemOnt[0];
+            System.Console.WriteLine(r0.Formula.FormulaString);
+            System.Console.WriteLine(r0.ChemicalOntologyDescriptions.Count);
+            System.Console.WriteLine(string.Join("\n", r0.ChemicalOntologyDescriptions));
         }
 
         public static IEnumerable<object[]> testDatas
