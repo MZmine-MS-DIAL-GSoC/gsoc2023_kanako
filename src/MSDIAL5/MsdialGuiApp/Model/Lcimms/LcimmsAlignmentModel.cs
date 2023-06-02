@@ -255,6 +255,8 @@ namespace CompMs.App.Msdial.Model.Lcimms
             IConnectableObservable<List<SpectrumPeak>> refSpectrum = MatchResultCandidatesModel.LoadSpectrumObservable(refLoader).Publish();
             Disposables.Add(refSpectrum.Connect());
             IMsSpectrumLoader<AlignmentSpotPropertyModel> decLoader = new AlignmentMSDecSpectrumLoader(_alignmentFileBean);
+            var referenceExporter = new MoleculeMsReferenceExporter(MatchResultCandidatesModel.SelectedCandidate.Select(c => mapper.MoleculeMsRefer(c)));
+            var spectraExporter = new NistSpectraExporter<AlignmentSpotProperty>(Target.Select(t => t?.innerModel), mapper, parameter).AddTo(Disposables);
             Ms2SpectrumModel = new MsSpectrumModel(
                 Target.SelectSwitch(decLoader.LoadSpectrumAsObservable),
                 refSpectrum,
@@ -269,8 +271,8 @@ namespace CompMs.App.Msdial.Model.Lcimms
                 nameof(SpectrumPeak.SpectrumComment),
                 Observable.Return(upperSpecBrush),
                 Observable.Return(lowerSpecBrush),
-                Observable.Return<ISpectraExporter>(null),
-                Observable.Return<ISpectraExporter>(null),
+                Observable.Return(spectraExporter),
+                Observable.Return(referenceExporter),
                 null,
                 MatchResultCandidatesModel.GetCandidatesScorer(searcherCollection)).AddTo(Disposables);
 
